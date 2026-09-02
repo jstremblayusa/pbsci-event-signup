@@ -1,0 +1,13 @@
+Package: PBSciEventSignup
+Type: Shiny
+Title: PBSci Faculty Recruitment Event Signup
+Version: 1.0.0
+Description: A two-slot faculty event signup application backed by Supabase.
+Authors@R: person("John", "Shelley-Tremblay", role = c("aut", "cre"), email = "jstremblay@southalabama.edu")
+License: MIT
+Encoding: UTF-8
+Imports:
+    shiny,
+    bslib,
+    httr2,
+    jsonlite
