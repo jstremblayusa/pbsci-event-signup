@@ -4,7 +4,7 @@ A small multiuser R Shiny application designed for **Posit Connect Cloud Free** 
 
 ## What it does
 
-- Shows nine Fall 2026 / Spring 2027 recruitment-event sessions.
+- Shows eleven Fall 2026 / Spring 2027 recruitment, yield, and commencement sessions.
 - Provides two faculty positions per session.
 - Lets faculty claim the next open position with a last name.
 - Makes claimed positions read-only and visibly filled.
@@ -22,6 +22,8 @@ A small multiuser R Shiny application designed for **Posit Connect Cloud Free** 
    - anon/public key (a publishable key also works if Supabase labels it that way)
 
 The SQL file creates the tables, safe two-slot transaction, public policies, and all initial events. Running it again resets the event list and deletes existing signups, so use it only for initial setup or an intentional reset.
+
+For an existing deployment, run `add_commencement_events.sql` once to add the Fall 2026 and Spring 2027 commencement events without affecting existing signups.
 
 ## 2. Test locally in RStudio
 

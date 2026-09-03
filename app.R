@@ -19,13 +19,23 @@ event_details <- list(
 )
 
 ui <- page_fluid(
-  theme = bs_theme(version = 5, bg = "#f5f7f6", fg = "#17251f", primary = "#005030", font_scale = 1.05),
-  tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "styles.css")),
+  theme = bs_theme(version = 5, bg = "#F5F7F9", fg = "#0A233F", primary = "#0A233F", font_scale = 1.05),
+  tags$head(
+    tags$link(rel = "preconnect", href = "https://fonts.googleapis.com"),
+    tags$link(rel = "preconnect", href = "https://fonts.gstatic.com", crossorigin = "anonymous"),
+    tags$link(rel = "stylesheet", href = "https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap"),
+    tags$link(rel = "stylesheet", type = "text/css", href = "styles.css")
+  ),
   div(class = "hero",
       div(class = "hero-inner",
-          div(class = "eyebrow", "UNF · PSYCHOLOGICAL & BRAIN SCIENCES"),
-          h1("Faculty Recruitment Event Signup"),
-          p("Choose an open event below. Enter your last name and select Sign up; the position is then reserved."))),
+          div(class = "logo-panel",
+              tags$img(src = "VerticalLogoBlue-resized.png",
+                       alt = "University of North Florida",
+                       class = "unf-logo")),
+          div(class = "hero-copy",
+              div(class = "eyebrow", "PSYCHOLOGICAL & BRAIN SCIENCES"),
+              h1("Faculty Recruitment Event Signup"),
+              p("Choose an open event below. Enter your last name and select Sign up; the position is then reserved.")))),
   div(class = "app-shell",
       uiOutput("connection_notice"),
       uiOutput("summary"),
@@ -80,6 +90,9 @@ server <- function(input, output, session) {
     eid <- event$event_id[[1]]
     current <- signups[signups$event_id == eid, , drop = FALSE]
     filled <- nrow(current); required <- event$slots_required[[1]]
+    time_display <- if (nzchar(event$end_time[[1]]))
+      paste(event$start_time[[1]], "–", event$end_time[[1]])
+    else event$start_time[[1]]
     status_class <- if (filled == required) "full" else if (filled == 0) "empty" else "partial"
     status_text <- if (filled == required) "FULL" else paste(required - filled, "OPEN")
     signup_rows <- lapply(seq_len(required), function(slot) {
@@ -106,7 +119,7 @@ server <- function(input, output, session) {
             span(class = paste("status-pill", status_class), status_text)),
         div(class = "event-meta",
             span(icon("calendar"), format(as.Date(event$event_date[[1]]), "%A, %B %d, %Y")),
-            span(icon("clock"), paste(event$start_time[[1]], "–", event$end_time[[1]])),
+            span(icon("clock"), time_display),
             span(icon("location-dot"), event$location[[1]])),
         p(class = "description", event$description[[1]]),
         if (nzchar(event$special_notes[[1]])) div(class = "special-note", strong("Special note: "), event$special_notes[[1]]),

@@ -1247,26 +1247,29 @@
     ".Renviron.example": {
       "checksum": "618fe17bdf2535284fc17b2d5866195e"
     },
+    "add_commencement_events.sql": {
+      "checksum": "e63280885540561bd486f2a3c6917733"
+    },
     "app.R": {
-      "checksum": "96a1f0b84be4a2a0e552da8ec1ce7c35"
+      "checksum": "c9f572d92444a92ab1647b9ef5e02fbc"
     },
     "DESCRIPTION": {
       "checksum": "f402d69eb75edb93697a689284a30530"
-    },
-    "PBSci-Event-Signup.zip": {
-      "checksum": "a773861956deb0ab0755aa332b15c06d"
     },
     "R/supabase.R": {
       "checksum": "bf92931c180221b7b6d00b0149bb3d99"
     },
     "README.md": {
-      "checksum": "ab629fd991114eccdd607693d9ea460c"
+      "checksum": "70d068683f1b202c3bb66129424bcc60"
     },
     "supabase_setup.sql": {
-      "checksum": "36b950d1b7a3ce579e472fb0d8218096"
+      "checksum": "05aaf92a87b757cfaa4edad1af24e66b"
     },
     "www/styles.css": {
-      "checksum": "2fe1c033ecd17610e63b8a734df16337"
+      "checksum": "e22ef7fe044b7b6b7787755af9e9e497"
+    },
+    "www/VerticalLogoBlue-resized.png": {
+      "checksum": "8c409081e3fbe10f4895d861cd06f6da"
     }
   },
   "users": null
