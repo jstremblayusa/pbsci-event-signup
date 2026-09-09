@@ -40,7 +40,9 @@ body { margin:0; font-family:"Open Sans",Arial,sans-serif; color:var(--ink); }
 .special-note { background:var(--soft-blue); border-left:4px solid var(--unf-aqua); border-radius:8px; padding:12px 14px; margin:13px 0; }
 details { margin:13px 0; } details summary { cursor:pointer; color:var(--osprey-blue); font-weight:700; text-decoration-color:var(--unf-aqua); }
 details > p, details > ul { color:#4f5f57; margin-top:10px; }
-.coverage-heading { font-size:.82rem; text-transform:uppercase; letter-spacing:.055em; font-weight:750; margin:22px 0 8px; color:#53625a; }
+.coverage-row { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:22px 0 8px; }
+.coverage-heading { font-size:.82rem; text-transform:uppercase; letter-spacing:.055em; font-weight:750; color:#53625a; }
+.add-slot-button { flex:0 0 auto; }
 .slots { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 .slot { border:1px solid var(--line); border-radius:8px; padding:11px 13px; display:flex; justify-content:space-between; align-items:center; min-height:47px; }
 .filled-slot { background:var(--soft-blue); border-color:#89D9ED; } .open-slot { color:#69737C; border-color:var(--osprey-gray); border-style:dashed; }

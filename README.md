@@ -5,7 +5,7 @@ A small multiuser R Shiny application designed for **Posit Connect Cloud Free** 
 ## What it does
 
 - Shows eleven Fall 2026 / Spring 2027 recruitment, yield, and commencement sessions.
-- Provides two faculty positions per session.
+- Starts each session with two faculty positions and provides an **Add slot** button for expanding any event as needed.
 - Lets faculty claim the next open position with a last name.
 - Makes claimed positions read-only and visibly filled.
 - Prevents simultaneous users from overbooking an event.
@@ -21,9 +21,11 @@ A small multiuser R Shiny application designed for **Posit Connect Cloud Free** 
    - Project URL
    - anon/public key (a publishable key also works if Supabase labels it that way)
 
-The SQL file creates the tables, safe two-slot transaction, public policies, and all initial events. Running it again resets the event list and deletes existing signups, so use it only for initial setup or an intentional reset.
+The SQL file creates the tables, atomic signup and slot-expansion functions, public policies, and all initial events. Running it again resets the event list and deletes existing signups, so use it only for initial setup or an intentional reset.
 
 For an existing deployment, run `add_commencement_events.sql` once to add the Fall 2026 and Spring 2027 commencement events without affecting existing signups.
+
+To enable the **Add slot** button on an existing deployment, run `enable_add_slot.sql` once in the Supabase SQL Editor. This migration removes the old 20-slot ceiling and adds the atomic slot-expansion function. It does not delete or modify any signup.
 
 ## 2. Test locally in RStudio
 
@@ -56,7 +58,7 @@ The app never writes to the Posit filesystem; all signup state lives in Supabase
 
 ## Important operating notes
 
-- This version intentionally has no authentication, as requested. Anyone with the URL can enter or remove a last name.
+- This version intentionally has no authentication, as requested. Anyone with the URL can enter or remove a last name and add signup slots.
 - Keeping the URL unlisted reduces casual discovery but is not access control.
 - Names and event assignments are visible to anyone with the URL.
 - The anon/publishable key is not treated as a secret security boundary here; the database policies deliberately allow the app's public operations.
@@ -69,6 +71,7 @@ Use Supabase **Table Editor → events**. You can change event text, dates, loca
 ## Project files
 
 - `app.R` — Shiny interface and server logic
-- `R/supabase.R` — Supabase REST functions
+- `R/supabase.R` — Supabase REST functions, including persistent slot expansion
 - `www/styles.css` — responsive visual design
 - `supabase_setup.sql` — schema, policies, atomic signup function, and seeded events
+- `enable_add_slot.sql` — non-destructive migration for an existing database

@@ -39,6 +39,13 @@ sb_claim_slot <- function(event_id, last_name) {
   x
 }
 
+sb_add_slot <- function(event_id) {
+  body <- list(p_event_id = as.integer(event_id))
+  x <- sb_perform(sb_request("rpc/add_event_slot") |> req_method("POST") |> req_body_json(body, auto_unbox = TRUE))
+  if (!length(x)) stop("The event could not be found.", call. = FALSE)
+  x
+}
+
 sb_remove_signup <- function(signup_id) {
   sb_perform(sb_request(paste0("signups?signup_id=eq.", URLencode(signup_id, reserved = TRUE))) |> req_method("DELETE"))
 }

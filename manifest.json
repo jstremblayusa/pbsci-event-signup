@@ -1251,22 +1251,25 @@
       "checksum": "e63280885540561bd486f2a3c6917733"
     },
     "app.R": {
-      "checksum": "c9f572d92444a92ab1647b9ef5e02fbc"
+      "checksum": "d10a3d555e5293b7d55199f757b939e4"
     },
     "DESCRIPTION": {
-      "checksum": "f402d69eb75edb93697a689284a30530"
+      "checksum": "17adecd3e58f9c84b80c655ea16d7901"
+    },
+    "enable_add_slot.sql": {
+      "checksum": "e56a1ff4edf465be1f041db27fb58a32"
     },
     "R/supabase.R": {
-      "checksum": "bf92931c180221b7b6d00b0149bb3d99"
+      "checksum": "4ef617c77b2134360ff79d64a1510c0b"
     },
     "README.md": {
-      "checksum": "70d068683f1b202c3bb66129424bcc60"
+      "checksum": "4ed76835556d36507feded0ff54b308c"
     },
     "supabase_setup.sql": {
-      "checksum": "05aaf92a87b757cfaa4edad1af24e66b"
+      "checksum": "9502a0ba9232871603f4c1cda6fa6de2"
     },
     "www/styles.css": {
-      "checksum": "e22ef7fe044b7b6b7787755af9e9e497"
+      "checksum": "cf65d6ec775bdd45043fac1454571bc4"
     },
     "www/VerticalLogoBlue-resized.png": {
       "checksum": "8c409081e3fbe10f4895d861cd06f6da"

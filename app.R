@@ -124,9 +124,26 @@ server <- function(input, output, session) {
         p(class = "description", event$description[[1]]),
         if (nzchar(event$special_notes[[1]])) div(class = "special-note", strong("Special note: "), event$special_notes[[1]]),
         if (!is.null(details)) tags$details(tags$summary("Event schedule and details"), details),
-        div(class = "coverage-heading", paste0("PBSci faculty coverage · ", filled, " of ", required)),
+        div(class = "coverage-row",
+            div(class = "coverage-heading", paste0("PBSci faculty coverage · ", filled, " of ", required)),
+            actionButton(
+              paste0("add_slot_", eid), "Add slot", icon = icon("plus"),
+              class = "btn-sm btn-outline-secondary add-slot-button",
+              onclick = sprintf("Shiny.setInputValue('add_slot_event',%s,{priority:'event'})", eid)
+            )),
         div(class = "slots", signup_rows), signup_control)
   }
+
+  observeEvent(input$add_slot_event, {
+    eid <- input$add_slot_event
+    result <- tryCatch(sb_add_slot(eid), error = function(e) e)
+    if (inherits(result, "error")) {
+      showNotification(conditionMessage(result), type = "error", duration = 7)
+    } else {
+      showNotification("One signup slot was added.", type = "message")
+      data_version(data_version() + 1)
+    }
+  }, ignoreInit = TRUE)
 
   observeEvent(input$signup_event, {
     eid <- input$signup_event

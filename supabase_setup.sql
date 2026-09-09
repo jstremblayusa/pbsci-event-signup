@@ -11,7 +11,7 @@ create table if not exists public.events (
   description text not null default '',
   special_notes text not null default '',
   details_key text not null default '',
-  slots_required integer not null default 2 check (slots_required between 1 and 20)
+  slots_required integer not null default 2 check (slots_required >= 1)
 );
 
 create table if not exists public.signups (
@@ -47,6 +47,19 @@ begin
 end;
 $$;
 
+-- Atomically add one more signup position to an event.
+create or replace function public.add_event_slot(p_event_id bigint)
+returns setof public.events
+language sql
+security definer
+set search_path = public
+as $$
+  update public.events
+  set slots_required = slots_required + 1
+  where event_id = p_event_id
+  returning *;
+$$;
+
 alter table public.events enable row level security;
 alter table public.signups enable row level security;
 drop policy if exists "public read events" on public.events;
@@ -59,6 +72,7 @@ grant usage on schema public to anon;
 grant select on public.events, public.signups to anon;
 grant delete on public.signups to anon;
 grant execute on function public.claim_next_slot(bigint,text) to anon;
+grant execute on function public.add_event_slot(bigint) to anon;
 
 truncate table public.signups;
 truncate table public.events restart identity cascade;
