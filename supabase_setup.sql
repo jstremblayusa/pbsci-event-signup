@@ -19,13 +19,14 @@ create table if not exists public.signups (
   event_id bigint not null references public.events(event_id) on delete cascade,
   slot_number integer not null check (slot_number > 0),
   last_name text not null check (length(trim(last_name)) between 1 and 80),
+  role text not null default '' check (length(trim(role)) <= 160),
   signed_up_at timestamptz not null default now(),
   unique(event_id, slot_number)
 );
 
 -- This function locks the event row, counts available positions, and assigns
 -- the first open slot in one transaction. Concurrent requests cannot overbook.
-create or replace function public.claim_next_slot(p_event_id bigint, p_last_name text)
+create or replace function public.claim_next_slot(p_event_id bigint, p_last_name text, p_role text)
 returns setof public.signups
 language plpgsql
 security definer
@@ -42,8 +43,9 @@ begin
   where not exists (select 1 from public.signups x where x.event_id=p_event_id and x.slot_number=s)
   order by s limit 1;
   if v_slot is null then return; end if;
-  return query insert into public.signups(event_id, slot_number, last_name)
-    values (p_event_id, v_slot, trim(p_last_name)) returning *;
+  if coalesce(length(trim(p_role)), 0) < 1 then raise exception 'Role is required'; end if;
+  return query insert into public.signups(event_id, slot_number, last_name, role)
+    values (p_event_id, v_slot, trim(p_last_name), trim(p_role)) returning *;
 end;
 $$;
 
@@ -71,7 +73,7 @@ create policy "public delete signups" on public.signups for delete to anon using
 grant usage on schema public to anon;
 grant select on public.events, public.signups to anon;
 grant delete on public.signups to anon;
-grant execute on function public.claim_next_slot(bigint,text) to anon;
+grant execute on function public.claim_next_slot(bigint,text,text) to anon;
 grant execute on function public.add_event_slot(bigint) to anon;
 
 truncate table public.signups;

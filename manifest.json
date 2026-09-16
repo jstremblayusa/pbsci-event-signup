@@ -1251,25 +1251,28 @@
       "checksum": "e63280885540561bd486f2a3c6917733"
     },
     "app.R": {
-      "checksum": "d10a3d555e5293b7d55199f757b939e4"
+      "checksum": "899b8fe3da46394212854cf413450f1d"
     },
     "DESCRIPTION": {
-      "checksum": "17adecd3e58f9c84b80c655ea16d7901"
+      "checksum": "e6f9ce153eec84faf440b3a69b78294e"
+    },
+    "add_signup_role.sql": {
+      "checksum": "3feea24bdb85345bd449d59375d7dbbf"
     },
     "enable_add_slot.sql": {
       "checksum": "e56a1ff4edf465be1f041db27fb58a32"
     },
     "R/supabase.R": {
-      "checksum": "4ef617c77b2134360ff79d64a1510c0b"
+      "checksum": "0025856f297c49aa7f5a99acde512ff6"
     },
     "README.md": {
-      "checksum": "4ed76835556d36507feded0ff54b308c"
+      "checksum": "1f6d1f7624c6401622a09493ac6878b8"
     },
     "supabase_setup.sql": {
-      "checksum": "9502a0ba9232871603f4c1cda6fa6de2"
+      "checksum": "514b716ac51c3afb823265d299d1384f"
     },
     "www/styles.css": {
-      "checksum": "cf65d6ec775bdd45043fac1454571bc4"
+      "checksum": "244b25502521e7a98cc1a96dda4ba613"
     },
     "www/VerticalLogoBlue-resized.png": {
       "checksum": "8c409081e3fbe10f4895d861cd06f6da"

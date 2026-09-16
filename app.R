@@ -98,8 +98,12 @@ server <- function(input, output, session) {
     signup_rows <- lapply(seq_len(required), function(slot) {
       who <- current[current$slot_number == slot, , drop = FALSE]
       if (nrow(who)) {
+        role <- if ("role" %in% names(who)) trimws(who$role[[1]]) else ""
         div(class = "slot filled-slot",
-            div(span(class = "slot-number", paste("Slot", slot)), strong(who$last_name[[1]])),
+            div(class = "slot-person",
+                span(class = "slot-number", paste("Slot", slot)),
+                strong(who$last_name[[1]]),
+                if (nzchar(role)) span(class = "signup-role", role)),
             actionButton(paste0("remove_", who$signup_id[[1]]), "Remove", class = "btn-sm btn-link remove-link",
                          onclick = sprintf("Shiny.setInputValue('remove_request','%s',{priority:'event'})", who$signup_id[[1]])))
       } else {
@@ -108,7 +112,9 @@ server <- function(input, output, session) {
     })
     signup_control <- if (filled < required) {
       div(class = "signup-control",
-          textInput(paste0("name_", eid), NULL, placeholder = "Enter last name"),
+          div(class = "signup-fields",
+              textInput(paste0("name_", eid), "Last name", placeholder = "Enter last name"),
+              textInput(paste0("role_", eid), "Role", placeholder = "Enter lab name or role")),
           actionButton(paste0("signup_", eid), "Sign up", class = "btn-primary",
                        onclick = sprintf("Shiny.setInputValue('signup_event',%s,{priority:'event'})", eid)))
     }
@@ -121,6 +127,9 @@ server <- function(input, output, session) {
             span(icon("calendar"), format(as.Date(event$event_date[[1]]), "%A, %B %d, %Y")),
             span(icon("clock"), time_display),
             span(icon("location-dot"), event$location[[1]])),
+        div(class = "signup-instruction",
+            strong("Role: "),
+            "Enter your lab name or role, e.g., visitor chaperone or running experiments."),
         p(class = "description", event$description[[1]]),
         if (nzchar(event$special_notes[[1]])) div(class = "special-note", strong("Special note: "), event$special_notes[[1]]),
         if (!is.null(details)) tags$details(tags$summary("Event schedule and details"), details),
@@ -147,11 +156,18 @@ server <- function(input, output, session) {
 
   observeEvent(input$signup_event, {
     eid <- input$signup_event
-    name <- trimws(input[[paste0("name_", eid)]])
+    name <- trimws(input[[paste0("name_", eid)]] %||% "")
+    role <- trimws(input[[paste0("role_", eid)]] %||% "")
     if (!nzchar(name)) { showNotification("Please enter your last name.", type = "warning"); return() }
-    result <- tryCatch(sb_claim_slot(eid, name), error = function(e) e)
+    if (!nzchar(role)) { showNotification("Please enter your role or lab name.", type = "warning"); return() }
+    result <- tryCatch(sb_claim_slot(eid, name, role), error = function(e) e)
     if (inherits(result, "error")) showNotification(conditionMessage(result), type = "error", duration = 7)
-    else { showNotification(paste("Signed up:", name), type = "message"); updateTextInput(session, paste0("name_", eid), value = ""); data_version(data_version() + 1) }
+    else {
+      showNotification(paste("Signed up:", name), type = "message")
+      updateTextInput(session, paste0("name_", eid), value = "")
+      updateTextInput(session, paste0("role_", eid), value = "")
+      data_version(data_version() + 1)
+    }
   }, ignoreInit = TRUE)
 
   observeEvent(input$remove_request, {
