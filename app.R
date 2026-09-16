@@ -49,6 +49,7 @@ ui <- page_fluid(
 server <- function(input, output, session) {
   tick <- reactiveTimer(15000, session)
   data_version <- reactiveVal(0)
+  role_edit_id <- reactiveVal(NULL)
   observeEvent(input$refresh, data_version(data_version() + 1))
 
   event_data <- reactive({
@@ -104,8 +105,18 @@ server <- function(input, output, session) {
                 span(class = "slot-number", paste("Slot", slot)),
                 strong(who$last_name[[1]]),
                 if (nzchar(role)) span(class = "signup-role", role)),
-            actionButton(paste0("remove_", who$signup_id[[1]]), "Remove", class = "btn-sm btn-link remove-link",
-                         onclick = sprintf("Shiny.setInputValue('remove_request','%s',{priority:'event'})", who$signup_id[[1]])))
+            div(class = "slot-actions",
+                actionButton(
+                  paste0("role_", who$signup_id[[1]]),
+                  if (nzchar(role)) "Edit role" else "Add role",
+                  class = "btn-sm btn-link edit-role-link",
+                  onclick = sprintf("Shiny.setInputValue('edit_role_request','%s',{priority:'event'})", who$signup_id[[1]])
+                ),
+                actionButton(
+                  paste0("remove_", who$signup_id[[1]]), "Remove",
+                  class = "btn-sm btn-link remove-link",
+                  onclick = sprintf("Shiny.setInputValue('remove_request','%s',{priority:'event'})", who$signup_id[[1]])
+                )))
       } else {
         div(class = "slot open-slot", span(class = "slot-number", paste("Slot", slot)), span("Available"))
       }
@@ -166,6 +177,48 @@ server <- function(input, output, session) {
       showNotification(paste("Signed up:", name), type = "message")
       updateTextInput(session, paste0("name_", eid), value = "")
       updateTextInput(session, paste0("role_", eid), value = "")
+      data_version(data_version() + 1)
+    }
+  }, ignoreInit = TRUE)
+
+  observeEvent(input$edit_role_request, {
+    sid <- input$edit_role_request
+    d <- tryCatch(event_data(), error = function(e) NULL)
+    if (is.null(d)) {
+      showNotification("The signup could not be loaded. Select Refresh and try again.", type = "error")
+      return()
+    }
+    signup <- d$signups[d$signups$signup_id == sid, , drop = FALSE]
+    if (!nrow(signup)) {
+      showNotification("That signup no longer exists.", type = "warning")
+      data_version(data_version() + 1)
+      return()
+    }
+    current_role <- if ("role" %in% names(signup)) trimws(signup$role[[1]]) else ""
+    role_edit_id(sid)
+    showModal(modalDialog(
+      title = paste("Role for", signup$last_name[[1]]),
+      textInput("edit_role_value", "Role", value = current_role,
+                placeholder = "Enter lab name or role"),
+      footer = tagList(modalButton("Cancel"), actionButton("confirm_role_edit", "Save role", class = "btn-primary"))
+    ))
+  }, ignoreInit = TRUE)
+
+  observeEvent(input$confirm_role_edit, {
+    sid <- role_edit_id()
+    role <- trimws(input$edit_role_value %||% "")
+    if (is.null(sid)) return()
+    if (!nzchar(role)) {
+      showNotification("Please enter a role or lab name.", type = "warning")
+      return()
+    }
+    result <- tryCatch(sb_update_signup_role(sid, role), error = function(e) e)
+    if (inherits(result, "error")) {
+      showNotification(conditionMessage(result), type = "error", duration = 7)
+    } else {
+      removeModal()
+      role_edit_id(NULL)
+      showNotification("Role saved.", type = "message")
       data_version(data_version() + 1)
     }
   }, ignoreInit = TRUE)

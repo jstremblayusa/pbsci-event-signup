@@ -49,6 +49,25 @@ begin
 end;
 $$;
 
+-- Update only the role attached to an existing signup.
+create or replace function public.update_signup_role(p_signup_id uuid, p_role text)
+returns setof public.signups
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if coalesce(length(trim(p_role)), 0) < 1 then
+    raise exception 'Role is required';
+  end if;
+
+  return query update public.signups
+  set role = trim(p_role)
+  where signup_id = p_signup_id
+  returning *;
+end;
+$$;
+
 -- Atomically add one more signup position to an event.
 create or replace function public.add_event_slot(p_event_id bigint)
 returns setof public.events
@@ -74,6 +93,7 @@ grant usage on schema public to anon;
 grant select on public.events, public.signups to anon;
 grant delete on public.signups to anon;
 grant execute on function public.claim_next_slot(bigint,text,text) to anon;
+grant execute on function public.update_signup_role(uuid,text) to anon;
 grant execute on function public.add_event_slot(bigint) to anon;
 
 truncate table public.signups;

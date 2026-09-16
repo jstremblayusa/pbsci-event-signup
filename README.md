@@ -8,6 +8,7 @@ A small multiuser R Shiny application designed for **Posit Connect Cloud Free** 
 - Starts each session with two faculty positions and provides an **Add slot** button for expanding any event as needed.
 - Lets faculty claim the next open position with a last name.
 - Requires each respondent to enter a lab name or event role and displays it with the signup.
+- Lets a role be added to an existing signup or corrected later without recreating the signup.
 - Makes claimed positions read-only and visibly filled.
 - Prevents simultaneous users from overbooking an event.
 - Allows a signup to be removed after confirmation.
@@ -29,6 +30,8 @@ For an existing deployment, run `add_commencement_events.sql` once to add the Fa
 To enable the **Add slot** button on an existing deployment, run `enable_add_slot.sql` once in the Supabase SQL Editor. This migration removes the old 20-slot ceiling and adds the atomic slot-expansion function. It does not delete or modify any signup.
 
 To add the required **Role** field to an existing deployment, run `add_signup_role.sql` once in the Supabase SQL Editor. Existing signups are preserved with a blank role; all new signups must provide one.
+
+To enable **Add role** and **Edit role** for existing signups, run `enable_role_editing.sql` once in the Supabase SQL Editor. It adds a narrowly scoped function that updates only the selected signup's role; it does not delete or recreate any signup.
 
 ## 2. Test locally in RStudio
 
@@ -79,3 +82,4 @@ Use Supabase **Table Editor → events**. You can change event text, dates, loca
 - `supabase_setup.sql` — schema, policies, atomic signup function, and seeded events
 - `enable_add_slot.sql` — non-destructive migration for an existing database
 - `add_signup_role.sql` — non-destructive migration adding the signup role field
+- `enable_role_editing.sql` — non-destructive migration enabling role updates
