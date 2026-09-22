@@ -49,7 +49,7 @@ ui <- page_fluid(
 server <- function(input, output, session) {
   tick <- reactiveTimer(15000, session)
   data_version <- reactiveVal(0)
-  role_edit_id <- reactiveVal(NULL)
+  details_edit_id <- reactiveVal(NULL)
   observeEvent(input$refresh, data_version(data_version() + 1))
 
   event_data <- reactive({
@@ -100,17 +100,19 @@ server <- function(input, output, session) {
       who <- current[current$slot_number == slot, , drop = FALSE]
       if (nrow(who)) {
         role <- if ("role" %in% names(who)) trimws(who$role[[1]]) else ""
+        signup_location <- if ("location" %in% names(who)) trimws(who$location[[1]]) else ""
         div(class = "slot filled-slot",
             div(class = "slot-person",
                 span(class = "slot-number", paste("Slot", slot)),
                 strong(who$last_name[[1]]),
-                if (nzchar(role)) span(class = "signup-role", role)),
+                if (nzchar(role)) span(class = "signup-role", strong("Role: "), role),
+                if (nzchar(signup_location)) span(class = "signup-location", strong("Location: "), signup_location)),
             div(class = "slot-actions",
                 actionButton(
-                  paste0("role_", who$signup_id[[1]]),
-                  if (nzchar(role)) "Edit role" else "Add role",
+                  paste0("details_", who$signup_id[[1]]),
+                  "Edit details",
                   class = "btn-sm btn-link edit-role-link",
-                  onclick = sprintf("Shiny.setInputValue('edit_role_request','%s',{priority:'event'})", who$signup_id[[1]])
+                  onclick = sprintf("Shiny.setInputValue('edit_details_request','%s',{priority:'event'})", who$signup_id[[1]])
                 ),
                 actionButton(
                   paste0("remove_", who$signup_id[[1]]), "Remove",
@@ -125,7 +127,8 @@ server <- function(input, output, session) {
       div(class = "signup-control",
           div(class = "signup-fields",
               textInput(paste0("name_", eid), "Last name", placeholder = "Enter last name"),
-              textInput(paste0("role_", eid), "Role", placeholder = "Enter lab name or role")),
+              textInput(paste0("role_", eid), "Role", placeholder = "How will you help?"),
+              textInput(paste0("location_", eid), "Location", placeholder = "Lab or requested event assignment")),
           actionButton(paste0("signup_", eid), "Sign up", class = "btn-primary",
                        onclick = sprintf("Shiny.setInputValue('signup_event',%s,{priority:'event'})", eid)))
     }
@@ -140,7 +143,10 @@ server <- function(input, output, session) {
             span(icon("location-dot"), event$location[[1]])),
         div(class = "signup-instruction",
             strong("Role: "),
-            "Enter your lab name or role, e.g., visitor chaperone or running experiments."),
+            "How will you help/what do you expect to be doing?",
+            tags$br(),
+            strong("Location: "),
+            "Enter the lab where you will be working, or if not in a lab, what job do you hope to do (e.g., moving students across campus, placing signage before/after the event, etc.)."),
         p(class = "description", event$description[[1]]),
         if (nzchar(event$special_notes[[1]])) div(class = "special-note", strong("Special note: "), event$special_notes[[1]]),
         if (!is.null(details)) tags$details(tags$summary("Event schedule and details"), details),
@@ -169,20 +175,23 @@ server <- function(input, output, session) {
     eid <- input$signup_event
     name <- trimws(input[[paste0("name_", eid)]] %||% "")
     role <- trimws(input[[paste0("role_", eid)]] %||% "")
+    signup_location <- trimws(input[[paste0("location_", eid)]] %||% "")
     if (!nzchar(name)) { showNotification("Please enter your last name.", type = "warning"); return() }
-    if (!nzchar(role)) { showNotification("Please enter your role or lab name.", type = "warning"); return() }
-    result <- tryCatch(sb_claim_slot(eid, name, role), error = function(e) e)
+    if (!nzchar(role)) { showNotification("Please describe how you will help.", type = "warning"); return() }
+    if (!nzchar(signup_location)) { showNotification("Please enter a location or requested event assignment.", type = "warning"); return() }
+    result <- tryCatch(sb_claim_slot(eid, name, role, signup_location), error = function(e) e)
     if (inherits(result, "error")) showNotification(conditionMessage(result), type = "error", duration = 7)
     else {
       showNotification(paste("Signed up:", name), type = "message")
       updateTextInput(session, paste0("name_", eid), value = "")
       updateTextInput(session, paste0("role_", eid), value = "")
+      updateTextInput(session, paste0("location_", eid), value = "")
       data_version(data_version() + 1)
     }
   }, ignoreInit = TRUE)
 
-  observeEvent(input$edit_role_request, {
-    sid <- input$edit_role_request
+  observeEvent(input$edit_details_request, {
+    sid <- input$edit_details_request
     d <- tryCatch(event_data(), error = function(e) NULL)
     if (is.null(d)) {
       showNotification("The signup could not be loaded. Select Refresh and try again.", type = "error")
@@ -195,30 +204,38 @@ server <- function(input, output, session) {
       return()
     }
     current_role <- if ("role" %in% names(signup)) trimws(signup$role[[1]]) else ""
-    role_edit_id(sid)
+    current_location <- if ("location" %in% names(signup)) trimws(signup$location[[1]]) else ""
+    details_edit_id(sid)
     showModal(modalDialog(
-      title = paste("Role for", signup$last_name[[1]]),
+      title = paste("Signup details for", signup$last_name[[1]]),
       textInput("edit_role_value", "Role", value = current_role,
-                placeholder = "Enter lab name or role"),
-      footer = tagList(modalButton("Cancel"), actionButton("confirm_role_edit", "Save role", class = "btn-primary"))
+                placeholder = "How will you help?"),
+      textInput("edit_location_value", "Location", value = current_location,
+                placeholder = "Lab or requested event assignment"),
+      footer = tagList(modalButton("Cancel"), actionButton("confirm_details_edit", "Save details", class = "btn-primary"))
     ))
   }, ignoreInit = TRUE)
 
-  observeEvent(input$confirm_role_edit, {
-    sid <- role_edit_id()
+  observeEvent(input$confirm_details_edit, {
+    sid <- details_edit_id()
     role <- trimws(input$edit_role_value %||% "")
+    signup_location <- trimws(input$edit_location_value %||% "")
     if (is.null(sid)) return()
     if (!nzchar(role)) {
-      showNotification("Please enter a role or lab name.", type = "warning")
+      showNotification("Please describe how you will help.", type = "warning")
       return()
     }
-    result <- tryCatch(sb_update_signup_role(sid, role), error = function(e) e)
+    if (!nzchar(signup_location)) {
+      showNotification("Please enter a location or requested event assignment.", type = "warning")
+      return()
+    }
+    result <- tryCatch(sb_update_signup_details(sid, role, signup_location), error = function(e) e)
     if (inherits(result, "error")) {
       showNotification(conditionMessage(result), type = "error", duration = 7)
     } else {
       removeModal()
-      role_edit_id(NULL)
-      showNotification("Role saved.", type = "message")
+      details_edit_id(NULL)
+      showNotification("Signup details saved.", type = "message")
       data_version(data_version() + 1)
     }
   }, ignoreInit = TRUE)

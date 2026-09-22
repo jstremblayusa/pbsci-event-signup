@@ -28,12 +28,13 @@ sb_get_events <- function() {
 
 sb_get_signups <- function() {
   x <- sb_perform(sb_request("signups?select=*&order=event_id.asc,slot_number.asc") |> req_method("GET"))
-  if (!length(x)) return(data.frame(signup_id = character(), event_id = integer(), slot_number = integer(), last_name = character()))
+  if (!length(x)) return(data.frame(signup_id = character(), event_id = integer(), slot_number = integer(), last_name = character(), role = character(), location = character()))
   as.data.frame(x, stringsAsFactors = FALSE)
 }
 
-sb_claim_slot <- function(event_id, last_name) {
-  body <- list(p_event_id = as.integer(event_id), p_last_name = last_name)
+sb_claim_slot <- function(event_id, last_name, role, location) {
+  body <- list(p_event_id = as.integer(event_id), p_last_name = last_name,
+               p_role = role, p_location = location)
   x <- sb_perform(sb_request("rpc/claim_next_slot") |> req_method("POST") |> req_body_json(body, auto_unbox = TRUE))
   if (!length(x)) stop("That event is already full. Refresh to see the latest signups.", call. = FALSE)
   x
@@ -43,6 +44,13 @@ sb_add_slot <- function(event_id) {
   body <- list(p_event_id = as.integer(event_id))
   x <- sb_perform(sb_request("rpc/add_event_slot") |> req_method("POST") |> req_body_json(body, auto_unbox = TRUE))
   if (!length(x)) stop("The event could not be found.", call. = FALSE)
+  x
+}
+
+sb_update_signup_details <- function(signup_id, role, location) {
+  body <- list(p_signup_id = signup_id, p_role = role, p_location = location)
+  x <- sb_perform(sb_request("rpc/update_signup_details") |> req_method("POST") |> req_body_json(body, auto_unbox = TRUE))
+  if (!length(x)) stop("That signup no longer exists. Refresh to see the latest signups.", call. = FALSE)
   x
 }
 
